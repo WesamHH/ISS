@@ -1,158 +1,244 @@
-DECLARE_INSN(fmv_s_x, 0xf0000053, 0xfff0707f)
-DECLARE_INSN(amoxor_w, 0x2000202f, 0xf800707f)
-DECLARE_INSN(remuw, 0x200703b, 0xfe00707f)
-DECLARE_INSN(fmin_d, 0xc2000053, 0xfe00707f)
-DECLARE_INSN(amomax_d, 0xa000302f, 0xf800707f)
-DECLARE_INSN(bltu, 0x6063, 0x707f)
-DECLARE_INSN(fmin_s, 0xc0000053, 0xfe00707f)
-DECLARE_INSN(slliw, 0x101b, 0xfe00707f)
-DECLARE_INSN(lb, 0x3, 0x707f)
-DECLARE_INSN(fcvt_s_wu, 0x78000053, 0xfff0007f)
-DECLARE_INSN(fcvt_d_l, 0x62000053, 0xfff0007f)
-DECLARE_INSN(lh, 0x1003, 0x707f)
-DECLARE_INSN(frsr, 0xe8000053, 0xfffff07f)
-DECLARE_INSN(fcvt_d_w, 0x72000053, 0xfff0007f)
-DECLARE_INSN(lw, 0x2003, 0x707f)
-DECLARE_INSN(add, 0x33, 0xfe00707f)
-DECLARE_INSN(fcvt_d_s, 0x82000053, 0xfff0007f)
-DECLARE_INSN(mfpcr, 0x1073, 0xfff0707f)
-DECLARE_INSN(fmax_d, 0xca000053, 0xfe00707f)
-DECLARE_INSN(bne, 0x1063, 0x707f)
-DECLARE_INSN(rdcycle, 0x4077, 0xfffff07f)
-DECLARE_INSN(fcvt_s_d, 0x88000053, 0xfff0007f)
-DECLARE_INSN(bgeu, 0x7063, 0x707f)
-DECLARE_INSN(fadd_d, 0x2000053, 0xfe00007f)
-DECLARE_INSN(sltiu, 0x3013, 0x707f)
-DECLARE_INSN(mtpcr, 0x73, 0xfe00707f)
-DECLARE_INSN(break, 0x1077, 0xffffffff)
-DECLARE_INSN(fcvt_s_w, 0x70000053, 0xfff0007f)
-DECLARE_INSN(mul, 0x2000033, 0xfe00707f)
-DECLARE_INSN(amominu_d, 0xc000302f, 0xf800707f)
-DECLARE_INSN(srli, 0x5013, 0xfc00707f)
-DECLARE_INSN(amominu_w, 0xc000202f, 0xf800707f)
-DECLARE_INSN(divuw, 0x200503b, 0xfe00707f)
-DECLARE_INSN(mulw, 0x200003b, 0xfe00707f)
-DECLARE_INSN(srlw, 0x503b, 0xfe00707f)
-DECLARE_INSN(div, 0x2004033, 0xfe00707f)
-DECLARE_INSN(fdiv_d, 0x1a000053, 0xfe00007f)
-DECLARE_INSN(fence, 0xf, 0x707f)
-DECLARE_INSN(fnmsub_s, 0x4b, 0x600007f)
-DECLARE_INSN(fcvt_l_s, 0x40000053, 0xfff0007f)
-DECLARE_INSN(fle_s, 0xb8000053, 0xfe00707f)
-DECLARE_INSN(fdiv_s, 0x18000053, 0xfe00007f)
-DECLARE_INSN(fle_d, 0xba000053, 0xfe00707f)
-DECLARE_INSN(fence_i, 0x100f, 0x707f)
-DECLARE_INSN(fnmsub_d, 0x200004b, 0x600007f)
-DECLARE_INSN(addw, 0x3b, 0xfe00707f)
-DECLARE_INSN(sll, 0x1033, 0xfe00707f)
-DECLARE_INSN(xor, 0x4033, 0xfe00707f)
-DECLARE_INSN(sub, 0x40000033, 0xfe00707f)
-DECLARE_INSN(eret, 0x4073, 0xffffffff)
-DECLARE_INSN(blt, 0x4063, 0x707f)
-DECLARE_INSN(sc_w, 0x1800202f, 0xf800707f)
-DECLARE_INSN(rem, 0x2006033, 0xfe00707f)
-DECLARE_INSN(srliw, 0x501b, 0xfe00707f)
-DECLARE_INSN(lui, 0x37, 0x7f)
-DECLARE_INSN(fcvt_s_lu, 0x68000053, 0xfff0007f)
-DECLARE_INSN(addi, 0x13, 0x707f)
-DECLARE_INSN(mulh, 0x2001033, 0xfe00707f)
-DECLARE_INSN(fmul_s, 0x10000053, 0xfe00007f)
-DECLARE_INSN(srai, 0x40005013, 0xfc00707f)
-DECLARE_INSN(amoand_d, 0x6000302f, 0xf800707f)
-DECLARE_INSN(flt_d, 0xb2000053, 0xfe00707f)
-DECLARE_INSN(sraw, 0x4000503b, 0xfe00707f)
-DECLARE_INSN(fmul_d, 0x12000053, 0xfe00007f)
-DECLARE_INSN(ld, 0x3003, 0x707f)
-DECLARE_INSN(ori, 0x6013, 0x707f)
-DECLARE_INSN(flt_s, 0xb0000053, 0xfe00707f)
-DECLARE_INSN(addiw, 0x1b, 0x707f)
-DECLARE_INSN(amoand_w, 0x6000202f, 0xf800707f)
-DECLARE_INSN(feq_s, 0xa8000053, 0xfe00707f)
-DECLARE_INSN(fsgnjx_d, 0x3a000053, 0xfe00707f)
-DECLARE_INSN(sra, 0x40005033, 0xfe00707f)
-DECLARE_INSN(bge, 0x5063, 0x707f)
-DECLARE_INSN(sraiw, 0x4000501b, 0xfe00707f)
-DECLARE_INSN(srl, 0x5033, 0xfe00707f)
-DECLARE_INSN(fsub_d, 0xa000053, 0xfe00007f)
-DECLARE_INSN(fsgnjx_s, 0x38000053, 0xfe00707f)
-DECLARE_INSN(feq_d, 0xaa000053, 0xfe00707f)
-DECLARE_INSN(fcvt_d_wu, 0x7a000053, 0xfff0007f)
-DECLARE_INSN(or, 0x6033, 0xfe00707f)
-DECLARE_INSN(rdinstret, 0x4004077, 0xfffff07f)
-DECLARE_INSN(fcvt_wu_d, 0x5a000053, 0xfff0007f)
-DECLARE_INSN(subw, 0x4000003b, 0xfe00707f)
-DECLARE_INSN(fmax_s, 0xc8000053, 0xfe00707f)
-DECLARE_INSN(amomaxu_d, 0xe000302f, 0xf800707f)
-DECLARE_INSN(xori, 0x4013, 0x707f)
-DECLARE_INSN(amoxor_d, 0x2000302f, 0xf800707f)
-DECLARE_INSN(amomaxu_w, 0xe000202f, 0xf800707f)
-DECLARE_INSN(fcvt_wu_s, 0x58000053, 0xfff0007f)
-DECLARE_INSN(rdtime, 0x2004077, 0xfffff07f)
-DECLARE_INSN(andi, 0x7013, 0x707f)
-DECLARE_INSN(clearpcr, 0x3073, 0x707f)
-DECLARE_INSN(fmv_x_s, 0xe0000053, 0xfff0707f)
-DECLARE_INSN(fsgnjn_d, 0x32000053, 0xfe00707f)
-DECLARE_INSN(fnmadd_s, 0x4f, 0x600007f)
-DECLARE_INSN(jal, 0x67, 0x7f)
-DECLARE_INSN(lwu, 0x6003, 0x707f)
-DECLARE_INSN(fmv_x_d, 0xe2000053, 0xfff0707f)
-DECLARE_INSN(fnmadd_d, 0x200004f, 0x600007f)
-DECLARE_INSN(amoadd_d, 0x302f, 0xf800707f)
-DECLARE_INSN(lr_d, 0x1000302f, 0xf9f0707f)
-DECLARE_INSN(fcvt_w_s, 0x50000053, 0xfff0007f)
-DECLARE_INSN(mulhsu, 0x2002033, 0xfe00707f)
-DECLARE_INSN(amoadd_w, 0x202f, 0xf800707f)
-DECLARE_INSN(fcvt_d_lu, 0x6a000053, 0xfff0007f)
-DECLARE_INSN(lr_w, 0x1000202f, 0xf9f0707f)
-DECLARE_INSN(fcvt_w_d, 0x52000053, 0xfff0007f)
-DECLARE_INSN(slt, 0x2033, 0xfe00707f)
-DECLARE_INSN(sllw, 0x103b, 0xfe00707f)
-DECLARE_INSN(amoor_d, 0x4000302f, 0xf800707f)
-DECLARE_INSN(slti, 0x2013, 0x707f)
-DECLARE_INSN(remu, 0x2007033, 0xfe00707f)
-DECLARE_INSN(flw, 0x2007, 0x707f)
-DECLARE_INSN(remw, 0x200603b, 0xfe00707f)
-DECLARE_INSN(sltu, 0x3033, 0xfe00707f)
-DECLARE_INSN(slli, 0x1013, 0xfc00707f)
-DECLARE_INSN(amoor_w, 0x4000202f, 0xf800707f)
-DECLARE_INSN(beq, 0x63, 0x707f)
-DECLARE_INSN(fld, 0x3007, 0x707f)
-DECLARE_INSN(fsub_s, 0x8000053, 0xfe00007f)
-DECLARE_INSN(and, 0x7033, 0xfe00707f)
-DECLARE_INSN(fmv_d_x, 0xf2000053, 0xfff0707f)
-DECLARE_INSN(lbu, 0x4003, 0x707f)
-DECLARE_INSN(syscall, 0x77, 0xffffffff)
-DECLARE_INSN(fsgnj_s, 0x28000053, 0xfe00707f)
-DECLARE_INSN(amomax_w, 0xa000202f, 0xf800707f)
-DECLARE_INSN(fsgnj_d, 0x2a000053, 0xfe00707f)
-DECLARE_INSN(mulhu, 0x2003033, 0xfe00707f)
-DECLARE_INSN(fcvt_l_d, 0x42000053, 0xfff0007f)
-DECLARE_INSN(fssr, 0xf8000053, 0xfff0707f)
-DECLARE_INSN(setpcr, 0x2073, 0x707f)
-DECLARE_INSN(fcvt_lu_s, 0x48000053, 0xfff0007f)
-DECLARE_INSN(fcvt_s_l, 0x60000053, 0xfff0007f)
-DECLARE_INSN(auipc, 0x17, 0x7f)
-DECLARE_INSN(fcvt_lu_d, 0x4a000053, 0xfff0007f)
-DECLARE_INSN(sc_d, 0x1800302f, 0xf800707f)
-DECLARE_INSN(fmadd_s, 0x43, 0x600007f)
-DECLARE_INSN(fsqrt_s, 0x20000053, 0xfff0007f)
-DECLARE_INSN(amomin_w, 0x8000202f, 0xf800707f)
-DECLARE_INSN(fsgnjn_s, 0x30000053, 0xfe00707f)
-DECLARE_INSN(amoswap_d, 0x800302f, 0xf800707f)
-DECLARE_INSN(fsqrt_d, 0x22000053, 0xfff0007f)
-DECLARE_INSN(fmadd_d, 0x2000043, 0x600007f)
-DECLARE_INSN(divw, 0x200403b, 0xfe00707f)
-DECLARE_INSN(amomin_d, 0x8000302f, 0xf800707f)
-DECLARE_INSN(divu, 0x2005033, 0xfe00707f)
-DECLARE_INSN(amoswap_w, 0x800202f, 0xf800707f)
-DECLARE_INSN(jalr, 0x6f, 0x707f)
-DECLARE_INSN(fadd_s, 0x53, 0xfe00007f)
-DECLARE_INSN(fsd, 0x3027, 0x707f)
-DECLARE_INSN(sw, 0x2023, 0x707f)
-DECLARE_INSN(fmsub_s, 0x47, 0x600007f)
-DECLARE_INSN(lhu, 0x5003, 0x707f)
-DECLARE_INSN(sh, 0x1023, 0x707f)
-DECLARE_INSN(fsw, 0x2027, 0x707f)
-DECLARE_INSN(sb, 0x23, 0x707f)
-DECLARE_INSN(fmsub_d, 0x2000047, 0x600007f)
-DECLARE_INSN(sd, 0x3023, 0x707f)
+#include "encoding.h"
+
+#define ZERO	0
+#define T0      5
+#define S0      8
+#define S1      9
+
+static uint32_t bits(uint32_t value, unsigned int hi, unsigned int lo) {
+  return (value >> lo) & ((1 << (hi+1-lo)) - 1);
+}
+
+static uint32_t bit(uint32_t value, unsigned int b) {
+  return (value >> b) & 1;
+}
+
+static uint32_t jal(unsigned int rd, uint32_t imm) __attribute__ ((unused));
+static uint32_t jal(unsigned int rd, uint32_t imm) {
+  return (bit(imm, 20) << 31) |
+    (bits(imm, 10, 1) << 21) |
+    (bit(imm, 11) << 20) |
+    (bits(imm, 19, 12) << 12) |
+    (rd << 7) |
+    MATCH_JAL;
+}
+
+static uint32_t csrsi(unsigned int csr, uint16_t imm) __attribute__ ((unused));
+static uint32_t csrsi(unsigned int csr, uint16_t imm) {
+  return (csr << 20) |
+    (bits(imm, 4, 0) << 15) |
+    MATCH_CSRRSI;
+}
+
+static uint32_t sw(unsigned int src, unsigned int base, uint16_t offset) __attribute__ ((unused));
+static uint32_t sw(unsigned int src, unsigned int base, uint16_t offset)
+{
+  return (bits(offset, 11, 5) << 25) |
+    (src << 20) |
+    (base << 15) |
+    (bits(offset, 4, 0) << 7) |
+    MATCH_SW;
+}
+
+static uint32_t sd(unsigned int src, unsigned int base, uint16_t offset) __attribute__ ((unused));
+static uint32_t sd(unsigned int src, unsigned int base, uint16_t offset)
+{
+  return (bits(offset, 11, 5) << 25) |
+    (src << 20) |
+    (base << 15) |
+    (bits(offset, 4, 0) << 7) |
+    MATCH_SD;
+}
+
+static uint32_t sh(unsigned int src, unsigned int base, uint16_t offset) __attribute__ ((unused));
+static uint32_t sh(unsigned int src, unsigned int base, uint16_t offset)
+{
+  return (bits(offset, 11, 5) << 25) |
+    (src << 20) |
+    (base << 15) |
+    (bits(offset, 4, 0) << 7) |
+    MATCH_SH;
+}
+
+static uint32_t sb(unsigned int src, unsigned int base, uint16_t offset) __attribute__ ((unused));
+static uint32_t sb(unsigned int src, unsigned int base, uint16_t offset)
+{
+  return (bits(offset, 11, 5) << 25) |
+    (src << 20) |
+    (base << 15) |
+    (bits(offset, 4, 0) << 7) |
+    MATCH_SB;
+}
+
+static uint32_t ld(unsigned int rd, unsigned int base, uint16_t offset) __attribute__ ((unused));
+static uint32_t ld(unsigned int rd, unsigned int base, uint16_t offset)
+{
+  return (bits(offset, 11, 0) << 20) |
+    (base << 15) |
+    (bits(rd, 4, 0) << 7) |
+    MATCH_LD;
+}
+
+static uint32_t lw(unsigned int rd, unsigned int base, uint16_t offset) __attribute__ ((unused));
+static uint32_t lw(unsigned int rd, unsigned int base, uint16_t offset)
+{
+  return (bits(offset, 11, 0) << 20) |
+    (base << 15) |
+    (bits(rd, 4, 0) << 7) |
+    MATCH_LW;
+}
+
+static uint32_t lh(unsigned int rd, unsigned int base, uint16_t offset) __attribute__ ((unused));
+static uint32_t lh(unsigned int rd, unsigned int base, uint16_t offset)
+{
+  return (bits(offset, 11, 0) << 20) |
+    (base << 15) |
+    (bits(rd, 4, 0) << 7) |
+    MATCH_LH;
+}
+
+static uint32_t lb(unsigned int rd, unsigned int base, uint16_t offset) __attribute__ ((unused));
+static uint32_t lb(unsigned int rd, unsigned int base, uint16_t offset)
+{
+  return (bits(offset, 11, 0) << 20) |
+    (base << 15) |
+    (bits(rd, 4, 0) << 7) |
+    MATCH_LB;
+}
+
+static uint32_t csrw(unsigned int source, unsigned int csr) __attribute__ ((unused));
+static uint32_t csrw(unsigned int source, unsigned int csr) {
+  return (csr << 20) | (source << 15) | MATCH_CSRRW;
+}
+
+static uint32_t addi(unsigned int dest, unsigned int src, uint16_t imm) __attribute__ ((unused));
+static uint32_t addi(unsigned int dest, unsigned int src, uint16_t imm)
+{
+  return (bits(imm, 11, 0) << 20) |
+    (src << 15) |
+    (dest << 7) |
+    MATCH_ADDI;
+}
+
+static uint32_t csrr(unsigned int rd, unsigned int csr) __attribute__ ((unused));
+static uint32_t csrr(unsigned int rd, unsigned int csr) {
+  return (csr << 20) | (rd << 7) | MATCH_CSRRS;
+}
+
+static uint32_t fsw(unsigned int src, unsigned int base, uint16_t offset) __attribute__ ((unused));
+static uint32_t fsw(unsigned int src, unsigned int base, uint16_t offset)
+{
+  return (bits(offset, 11, 5) << 25) |
+    (bits(src, 4, 0) << 20) |
+    (base << 15) |
+    (bits(offset, 4, 0) << 7) |
+    MATCH_FSW;
+}
+
+static uint32_t fsd(unsigned int src, unsigned int base, uint16_t offset) __attribute__ ((unused));
+static uint32_t fsd(unsigned int src, unsigned int base, uint16_t offset)
+{
+  return (bits(offset, 11, 5) << 25) |
+    (bits(src, 4, 0) << 20) |
+    (base << 15) |
+    (bits(offset, 4, 0) << 7) |
+    MATCH_FSD;
+}
+
+static uint32_t flw(unsigned int dest, unsigned int base, uint16_t offset) __attribute__ ((unused));
+static uint32_t flw(unsigned int dest, unsigned int base, uint16_t offset)
+{
+  return (bits(offset, 11, 0) << 20) |
+    (base << 15) |
+    (bits(dest, 4, 0) << 7) |
+    MATCH_FLW;
+}
+
+static uint32_t fld(unsigned int dest, unsigned int base, uint16_t offset) __attribute__ ((unused));
+static uint32_t fld(unsigned int dest, unsigned int base, uint16_t offset)
+{
+  return (bits(offset, 11, 0) << 20) |
+    (base << 15) |
+    (bits(dest, 4, 0) << 7) |
+    MATCH_FLD;
+}
+
+static uint32_t ebreak(void) __attribute__ ((unused));
+static uint32_t ebreak(void) { return MATCH_EBREAK; }
+static uint32_t ebreak_c(void) __attribute__ ((unused));
+static uint32_t ebreak_c(void) { return MATCH_C_EBREAK; }
+
+static uint32_t dret(void) __attribute__ ((unused));
+static uint32_t dret(void) { return MATCH_DRET; }
+
+static uint32_t fence_i(void) __attribute__ ((unused));
+static uint32_t fence_i(void)
+{
+  return MATCH_FENCE_I;
+}
+
+/*
+static uint32_t lui(unsigned int dest, uint32_t imm) __attribute__ ((unused));
+static uint32_t lui(unsigned int dest, uint32_t imm)
+{
+  return (bits(imm, 19, 0) << 12) |
+    (dest << 7) |
+    MATCH_LUI;
+}
+
+static uint32_t csrci(unsigned int csr, uint16_t imm) __attribute__ ((unused));
+static uint32_t csrci(unsigned int csr, uint16_t imm) {
+  return (csr << 20) |
+    (bits(imm, 4, 0) << 15) |
+    MATCH_CSRRCI;
+}
+
+static uint32_t li(unsigned int dest, uint16_t imm) __attribute__ ((unused));
+static uint32_t li(unsigned int dest, uint16_t imm)
+{
+	return addi(dest, 0, imm);
+}
+
+static uint32_t fsd(unsigned int src, unsigned int base, uint16_t offset) __attribute__ ((unused));
+static uint32_t fsd(unsigned int src, unsigned int base, uint16_t offset)
+{
+  return (bits(offset, 11, 5) << 25) |
+    (bits(src, 4, 0) << 20) |
+    (base << 15) |
+    (bits(offset, 4, 0) << 7) |
+    MATCH_FSD;
+}
+
+static uint32_t ori(unsigned int dest, unsigned int src, uint16_t imm) __attribute__ ((unused));
+static uint32_t ori(unsigned int dest, unsigned int src, uint16_t imm)
+{
+  return (bits(imm, 11, 0) << 20) |
+    (src << 15) |
+    (dest << 7) |
+    MATCH_ORI;
+}
+
+static uint32_t nop(void) __attribute__ ((unused));
+static uint32_t nop(void)
+{
+  return addi(0, 0, 0);
+}
+*/
+
+static uint32_t xori(unsigned int dest, unsigned int src, uint16_t imm) __attribute__ ((unused));
+static uint32_t xori(unsigned int dest, unsigned int src, uint16_t imm)
+{
+  return (bits(imm, 11, 0) << 20) |
+    (src << 15) |
+    (dest << 7) |
+    MATCH_XORI;
+}
+
+static uint32_t srli(unsigned int dest, unsigned int src, uint8_t shamt) __attribute__ ((unused));
+static uint32_t srli(unsigned int dest, unsigned int src, uint8_t shamt)
+{
+	return (bits(shamt, 4, 0) << 20) |
+		(src << 15) |
+		(dest << 7) |
+		MATCH_SRLI;
+}

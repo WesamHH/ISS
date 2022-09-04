@@ -1,1 +1,2 @@
-WRITE_RD(sext_xprlen(RS1 * RS2));
+require_extension('M');
+WRITE_RD(sext_xlen(RS1 * RS2));

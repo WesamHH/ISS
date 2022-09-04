@@ -55,14 +55,14 @@ enable_stow  := @enable_stow@
 
 ifeq ($(enable_stow),yes)
   stow_pkg_dir := $(prefix)/pkgs
-  DESTDIR ?= $(stow_pkg_dir)/$(project_name)-$(project_ver)
+  INSTALLDIR ?= $(DESTDIR)$(stow_pkg_dir)/$(project_name)-$(project_ver)
 else
-  DESTDIR ?= $(prefix)
+  INSTALLDIR ?= $(DESTDIR)$(prefix)
 endif
 
-install_hdrs_dir := $(DESTDIR)/include/$(project_name)
-install_libs_dir := $(DESTDIR)/lib/$(project_name)
-install_exes_dir := $(DESTDIR)/bin
+install_hdrs_dir := $(INSTALLDIR)/include/$(project_name)
+install_libs_dir := $(INSTALLDIR)/lib
+install_exes_dir := $(INSTALLDIR)/bin
 
 #-------------------------------------------------------------------------
 # List of subprojects
@@ -71,7 +71,7 @@ install_exes_dir := $(DESTDIR)/bin
 sprojs         := @subprojects@
 sprojs_enabled := @subprojects_enabled@
 
-sprojs_include := -I. $(addprefix -I$(src_dir)/, $(sprojs_enabled))
+sprojs_include := -I. -I$(src_dir) $(addprefix -I$(src_dir)/, $(sprojs_enabled))
 VPATH := $(addprefix $(src_dir)/, $(sprojs_enabled))
 
 #-------------------------------------------------------------------------
@@ -84,21 +84,22 @@ VPATH := $(addprefix $(src_dir)/, $(sprojs_enabled))
 
 CC            := @CC@
 CXX           := @CXX@
-CFLAGS        += @CFLAGS@
+CFLAGS        += @CFLAGS@ -DPREFIX=\"$(prefix)\"
 CPPFLAGS      += @CPPFLAGS@
-CXXFLAGS      += @CXXFLAGS@
-COMPILE       := $(CXX) -MMD -MP $(CPPFLAGS) $(CFLAGS) $(CXXFLAGS) \
+CXXFLAGS      += @CXXFLAGS@ -DPREFIX=\"$(prefix)\"
+COMPILE       := $(CXX) -fPIC -MMD -MP $(CPPFLAGS) $(CXXFLAGS) \
                  $(sprojs_include)
-COMPILE_C     := $(CC)  -MMD -MP $(CPPFLAGS) $(CFLAGS) \
+COMPILE_C     := $(CC) -fPIC -MMD -MP $(CPPFLAGS) $(CFLAGS) \
                  $(sprojs_include)
 # Linker
 #  - LDFLAGS : Flags for the linker (eg. -L)
 #  - LIBS    : Library flags (eg. -l)
 
+comma := ,
 LD            := $(CXX)
 LDFLAGS       := @LDFLAGS@
 LIBS          := @LIBS@
-LINK          := $(LD) $(LDFLAGS) 
+LINK          := $(LD) -L. $(LDFLAGS) -Wl,-rpath,$(install_libs_dir) $(patsubst -L%,-Wl$(comma)-rpath$(comma)%,$(filter -L%,$(LDFLAGS)))
 
 # Library creation
 
@@ -118,6 +119,9 @@ INSTALL_HDR   := $(INSTALL) -m 444
 INSTALL_LIB   := $(INSTALL) -m 644
 INSTALL_EXE   := $(INSTALL) -m 555
 STOW          := @stow@
+
+# Tests
+bintests = $(src_dir)/tests/ebreak.py
 
 #-------------------------------------------------------------------------
 # Include subproject makefile fragments
@@ -183,30 +187,39 @@ _$(1).cc :
 
 # Build the object files for this subproject
 
+$(2)_pch := $$(patsubst %.h, %.h.gch, $$($(2)_precompiled_hdrs))
 $(2)_objs := $$(patsubst %.cc, %.o, $$($(2)_srcs))
 $(2)_c_objs := $$(patsubst %.c, %.o, $$($(2)_c_srcs))
 $(2)_deps := $$(patsubst %.o, %.d, $$($(2)_objs))
-$(2)_c_deps := $$(patsubst %.o, %.d, $$($(2)_c_objs))
-$$($(2)_objs) : %.o : %.cc $$($(2)_gen_hdrs)
+$(2)_deps += $$(patsubst %.o, %.d, $$($(2)_c_objs))
+$(2)_deps += $$(patsubst %.h, %.h.d, $$($(2)_precompiled_hdrs))
+$$($(2)_pch) : %.h.gch : %.h
+	$(COMPILE) -x c++-header $$< -o $$@
+# If using clang, don't depend (and thus don't build) precompiled headers
+$$($(2)_objs) : %.o : %.cc $$($(2)_gen_hdrs) $(if $(filter-out clang,$(CC)),$$($(2)_pch))
 	$(COMPILE) -c $$<
 $$($(2)_c_objs) : %.o : %.c $$($(2)_gen_hdrs)
 	$(COMPILE_C) -c $$<
 
-$(2)_junk += $$($(2)_objs) $$($(2)_c_objs) $$($(2)_deps) $$($(2)_c_deps)
-
-# Build a library for this subproject
-
-lib$(1).a : $$($(2)_objs) $$($(2)_c_objs)
-	$(AR) rcv $$@ $$^
-	$(RANLIB) $$@
-
-$(2)_junk += lib$(1).a
+$(2)_junk += $$($(2)_pch) $$($(2)_objs) $$($(2)_c_objs) $$($(2)_deps) \
+  $$($(2)_gen_hdrs)
 
 # Reverse the dependency list so that a given subproject only depends on
 # subprojects listed to its right. This is the correct order for linking
 # the list of subproject libraries.
 
 $(2)_reverse_deps   := $$(call reverse_list,$$($(2)_subproject_deps))
+
+# Build a library for this subproject
+
+$(2)_lib_libs       := $$($(2)_reverse_deps)
+$(2)_lib_libnames   := $$(patsubst %, lib%.so, $$($(2)_lib_libs))
+$(2)_lib_libarg     := $$(patsubst %, -l%, $$($(2)_lib_libs))
+
+lib$(1).so : $$($(2)_objs) $$($(2)_c_objs) $$($(2)_lib_libnames)
+	$(LINK) -shared -o $$@ $(if $(filter Darwin,$(shell uname -s)),-install_name $(install_libs_dir)/$$@) $$^ $$($(2)_lib_libarg) $(LIBS)
+
+$(2)_junk += lib$(1).so
 
 # Build unit tests
 
@@ -215,8 +228,8 @@ $(2)_test_deps      := $$(patsubst %.o, %.d, $$($(2)_test_objs))
 $(2)_test_exes      := $$(patsubst %.t.cc, %-utst, $$($(2)_test_srcs))
 $(2)_test_outs      := $$(patsubst %, %.out, $$($(2)_test_exes))
 $(2)_test_libs      := $(1) $$($(2)_reverse_deps) utst
-$(2)_test_libnames  := $$(patsubst %, lib%.a, $$($(2)_test_libs))
-$(2)_test_libarg    := -L. $$(patsubst %, -l%, $$($(2)_test_libs))
+$(2)_test_libnames  := $$(patsubst %, lib%.so, $$($(2)_test_libs))
+$(2)_test_libarg    := $$(patsubst %, -l%, $$($(2)_test_libs))
 
 $$($(2)_test_objs) : %.o : %.cc
 	$(COMPILE) -c $$<
@@ -242,8 +255,8 @@ $(2)_prog_objs      := $$(patsubst %.cc, %.o, $$($(2)_prog_srcs))
 $(2)_prog_deps      := $$(patsubst %.o, %.d, $$($(2)_prog_objs))
 $(2)_prog_exes      := $$(patsubst %.cc, %, $$($(2)_prog_srcs))
 $(2)_prog_libs      := $(1) $$($(2)_reverse_deps)
-$(2)_prog_libnames  := $$(patsubst %, lib%.a, $$($(2)_prog_libs))
-$(2)_prog_libarg    := -L. $$(patsubst %, -l%, $$($(2)_prog_libs))
+$(2)_prog_libnames  := $$(patsubst %, lib%.so, $$($(2)_prog_libs))
+$(2)_prog_libarg    := $$(patsubst %, -l%, $$($(2)_prog_libs))
 
 $$($(2)_prog_objs) : %.o : %.cc
 	$(COMPILE) -c $$<
@@ -273,7 +286,7 @@ $(2)_junk += \
 
 # Subproject specific targets
 
-all-$(1) : lib$(1).a $$($(2)_install_prog_exes)
+all-$(1) : lib$(1).so $$($(2)_install_prog_exes)
 
 check-$(1) : $$($(2)_test_outs)
 	echo; grep -h -e'Unit Tests' -e'FAILED' -e'Segementation' $$^; echo
@@ -285,7 +298,7 @@ clean-$(1) :
 
 # Update running variables
 
-libs += lib$(1).a
+libs += lib$(1).so
 objs += $$($(2)_objs)
 srcs += $$(addprefix $(src_dir)/$(1)/, $$($(2)_srcs)) 
 hdrs += $$(addprefix $(src_dir)/$(1)/, $$($(2)_hdrs)) $$($(2)_gen_hdrs)
@@ -295,8 +308,9 @@ deps += $$($(2)_deps)
 test_outs += $$($(2)_test_outs)
 
 install_hdrs += $$(addprefix $(src_dir)/$(1)/, $$($(2)_hdrs)) $$($(2)_gen_hdrs)
-install_libs += lib$(1).a
+install_libs += lib$(1).so
 install_exes += $$($(2)_install_prog_exes)
+install_pcs  += riscv-$(1).pc
 
 endef
 
@@ -318,8 +332,20 @@ deps : $(deps)
 # Check
 #-------------------------------------------------------------------------
 
-check : $(test_outs)
-	echo; grep -h -e'Unit Tests' -e'FAILED' -e'Segementation' $^; echo
+bintest_outs = $(bintests:=.out)
+junk += $(bintest_outs)
+%.out: % all
+	./$* < /dev/null 2>&1 | tee $@
+
+check-cpp : $(test_outs)
+	@echo
+	! grep -h -e'Unit Tests' -e'FAILED' -e'Segmentation' $^ < /dev/null
+	@echo
+
+check-bin : $(bintest_outs)
+	! tail -n 1 $^ < /dev/null 2>&1 | grep FAILED
+
+check : check-cpp check-bin
 
 .PHONY : check
 
@@ -327,7 +353,7 @@ check : $(test_outs)
 # Installation
 #-------------------------------------------------------------------------
 
-install-hdrs : $(install_hdrs)
+install-hdrs : $(install_hdrs) config.h
 	$(MKINSTALLDIRS) $(install_hdrs_dir)
 	for file in $^; \
   do \
@@ -348,7 +374,14 @@ install-exes : $(install_exes)
     $(INSTALL_EXE) $$file $(install_exes_dir); \
   done
 
-install : install-hdrs install-libs install-exes
+install-pc : $(install_pcs)
+	$(MKINSTALLDIRS) $(install_libs_dir)/pkgconfig/
+	for file in $^; \
+  do \
+    $(INSTALL_HDR) $$file $(install_libs_dir)/pkgconfig/; \
+  done
+
+install : install-hdrs install-libs install-exes install-pc
 ifeq ($(enable_stow),yes)
 	$(MKINSTALLDIRS) $(stow_pkg_dir)
 	cd $(stow_pkg_dir) && \
@@ -361,15 +394,6 @@ endif
 #-------------------------------------------------------------------------
 # Regenerate configure information
 #-------------------------------------------------------------------------
-
-configure_prereq = \
-  $(src_dir)/configure.ac \
-  $(src_dir)/aclocal.m4 \
-  $(join $(addprefix $(src_dir)/, $(sprojs_enabled)), \
-         $(patsubst  %, /%.ac, $(sprojs_enabled)))
-
-$(src_dir)/configure : $(configure_prereq)
-	cd $(src_dir) && autoconf && autoheader
 
 config.status : $(src_dir)/configure
 	./config.status --recheck
