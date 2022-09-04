@@ -37,6 +37,7 @@ m4_define( proj_version, [?])
 #-------------------------------------------------------------------------
 
 AC_INIT(proj_name,proj_version,proj_maintainer,proj_abbreviation)
+AC_LANG_CPLUSPLUS
 AC_CONFIG_SRCDIR([riscv/common.h])
 AC_CONFIG_AUX_DIR([scripts])
 AC_CANONICAL_BUILD
@@ -50,6 +51,11 @@ AC_PROG_CC
 AC_PROG_CXX
 AC_CHECK_TOOL([AR],[ar])
 AC_CHECK_TOOL([RANLIB],[ranlib])
+AC_PATH_PROG([DTC],[dtc],[no])
+AS_IF([test x"$DTC" == xno],AC_MSG_ERROR([device-tree-compiler not found]))
+AC_DEFINE_UNQUOTED(DTC, ["$DTC"], [Path to the device-tree-compiler])
+
+AC_C_BIGENDIAN(AC_MSG_ERROR([Spike requires a little-endian host]))
 
 #-------------------------------------------------------------------------
 # MCPPBS specific program checks
@@ -59,7 +65,6 @@ AC_CHECK_TOOL([RANLIB],[ranlib])
 # via the makefile.
 
 MCPPBS_PROG_INSTALL
-MCPPBS_PROG_RUN
 
 #-------------------------------------------------------------------------
 # Checks for header files
@@ -71,8 +76,8 @@ AC_HEADER_STDC
 # Default compiler flags
 #-------------------------------------------------------------------------
 
-AC_SUBST([CFLAGS],  ["-Wall -O2 -Wno-unused"])
-AC_SUBST([CXXFLAGS],["-Wall -O2 -std=c++0x"])
+AC_SUBST([CFLAGS],  ["-Wall -Wno-unused -g -O2"])
+AC_SUBST([CXXFLAGS],["-Wall -Wno-unused -g -O2 -std=c++11"])
 
 #-------------------------------------------------------------------------
 # MCPPBS subproject list
@@ -81,7 +86,7 @@ AC_SUBST([CXXFLAGS],["-Wall -O2 -std=c++0x"])
 # The '*' suffix indicates an optional subproject. The '**' suffix
 # indicates an optional subproject which is also the name of a group.
 
-MCPPBS_SUBPROJECTS([ riscv, hwacha, softfloat, softfloat_riscv ])
+MCPPBS_SUBPROJECTS([ riscv, dummy_rocc, softfloat, spike_main ])
 
 #-------------------------------------------------------------------------
 # MCPPBS subproject groups
@@ -100,4 +105,9 @@ MCPPBS_SUBPROJECTS([ riscv, hwacha, softfloat, softfloat_riscv ])
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([riscv-spike.pc])
+AC_CONFIG_FILES([riscv-riscv.pc])
+AC_CONFIG_FILES([riscv-softfloat.pc])
+AC_CONFIG_FILES([riscv-dummy_rocc.pc])
+AC_CONFIG_FILES([riscv-spike_main.pc])
 AC_OUTPUT

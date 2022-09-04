@@ -4,15 +4,17 @@
 #define _RISCV_TRAP_H
 
 #include "decode.h"
+#include <stdlib.h>
 
-class state_t;
+struct state_t;
 
 class trap_t
 {
  public:
   trap_t(reg_t which) : which(which) {}
   virtual const char* name();
-  virtual void side_effects(state_t* state) {}
+  virtual bool has_badaddr() { return false; }
+  virtual reg_t get_badaddr() { abort(); }
   reg_t cause() { return which; }
  private:
   char _name[16];
@@ -22,12 +24,12 @@ class trap_t
 class mem_trap_t : public trap_t
 {
  public:
-  mem_trap_t(reg_t which, reg_t badvaddr)
-    : trap_t(which), badvaddr(badvaddr) {}
-  void side_effects(state_t* state);
-  reg_t get_badvaddr() { return badvaddr; }
+  mem_trap_t(reg_t which, reg_t badaddr)
+    : trap_t(which), badaddr(badaddr) {}
+  bool has_badaddr() override { return true; }
+  reg_t get_badaddr() override { return badaddr; }
  private:
-  reg_t badvaddr;
+  reg_t badaddr;
 };
 
 #define DECLARE_TRAP(n, x) class trap_##x : public trap_t { \
@@ -38,22 +40,24 @@ class mem_trap_t : public trap_t
 
 #define DECLARE_MEM_TRAP(n, x) class trap_##x : public mem_trap_t { \
  public: \
-  trap_##x(reg_t badvaddr) : mem_trap_t(n, badvaddr) {} \
+  trap_##x(reg_t badaddr) : mem_trap_t(n, badaddr) {} \
   const char* name() { return "trap_"#x; } \
 };
 
-DECLARE_TRAP(0, instruction_address_misaligned)
-DECLARE_TRAP(1, instruction_access_fault)
-DECLARE_TRAP(2, illegal_instruction)
-DECLARE_TRAP(3, privileged_instruction)
-DECLARE_TRAP(4, fp_disabled)
-DECLARE_TRAP(5, reserved0)
-DECLARE_TRAP(6, syscall)
-DECLARE_TRAP(7, breakpoint)
-DECLARE_MEM_TRAP(8, load_address_misaligned)
-DECLARE_MEM_TRAP(9, store_address_misaligned)
-DECLARE_MEM_TRAP(10, load_access_fault)
-DECLARE_MEM_TRAP(11, store_access_fault)
-DECLARE_TRAP(12, accelerator_disabled)
+DECLARE_MEM_TRAP(CAUSE_MISALIGNED_FETCH, instruction_address_misaligned)
+DECLARE_MEM_TRAP(CAUSE_FETCH_ACCESS, instruction_access_fault)
+DECLARE_MEM_TRAP(CAUSE_ILLEGAL_INSTRUCTION, illegal_instruction)
+DECLARE_MEM_TRAP(CAUSE_BREAKPOINT, breakpoint)
+DECLARE_MEM_TRAP(CAUSE_MISALIGNED_LOAD, load_address_misaligned)
+DECLARE_MEM_TRAP(CAUSE_MISALIGNED_STORE, store_address_misaligned)
+DECLARE_MEM_TRAP(CAUSE_LOAD_ACCESS, load_access_fault)
+DECLARE_MEM_TRAP(CAUSE_STORE_ACCESS, store_access_fault)
+DECLARE_TRAP(CAUSE_USER_ECALL, user_ecall)
+DECLARE_TRAP(CAUSE_SUPERVISOR_ECALL, supervisor_ecall)
+DECLARE_TRAP(CAUSE_HYPERVISOR_ECALL, hypervisor_ecall)
+DECLARE_TRAP(CAUSE_MACHINE_ECALL, machine_ecall)
+DECLARE_MEM_TRAP(CAUSE_FETCH_PAGE_FAULT, instruction_page_fault)
+DECLARE_MEM_TRAP(CAUSE_LOAD_PAGE_FAULT, load_page_fault)
+DECLARE_MEM_TRAP(CAUSE_STORE_PAGE_FAULT, store_page_fault)
 
 #endif
