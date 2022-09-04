@@ -3,9 +3,9 @@
 #define _RISCV_PROCESSOR_H
 
 #include "decode.h"
-#include "disasm.h"
-#include <cstring>
 #include "config.h"
+#include <cstring>
+#include <vector>
 #include <map>
 
 class processor_t;
@@ -14,6 +14,7 @@ typedef reg_t (*insn_func_t)(processor_t*, insn_t, reg_t);
 class sim_t;
 class trap_t;
 class extension_t;
+class disassembler_t;
 
 struct insn_desc_t
 {
@@ -23,18 +24,22 @@ struct insn_desc_t
   insn_func_t rv64;
 };
 
+struct commit_log_reg_t
+{
+  uint32_t addr;
+  reg_t data;
+};
+
 // architectural state of a RISC-V hart
 struct state_t
 {
   void reset();
 
-  // user-visible state
   reg_t pc;
   regfile_t<reg_t, NXPR, true> XPR;
   regfile_t<freg_t, NFPR, false> FPR;
-  reg_t cycle;
 
-  // privileged control registers
+  // control and status registers
   reg_t epc;
   reg_t badvaddr;
   reg_t evec;
@@ -44,12 +49,17 @@ struct state_t
   reg_t cause;
   reg_t tohost;
   reg_t fromhost;
-  uint32_t sr; // only modify the status register using set_pcr()
-  uint32_t fsr;
-  uint32_t count;
+  reg_t count;
   uint32_t compare;
+  uint32_t sr; // only modify the status register using set_pcr()
+  uint32_t fflags;
+  uint32_t frm;
 
   reg_t load_reservation;
+
+#ifdef RISCV_ENABLE_COMMITLOG
+  commit_log_reg_t log_reg_write;
+#endif
 };
 
 // this class represents one processor in a RISC-V machine.
@@ -60,19 +70,20 @@ public:
   ~processor_t();
 
   void set_debug(bool value);
+  void set_histogram(bool value);
   void reset(bool value);
   void step(size_t n); // run for n cycles
   void deliver_ipi(); // register an interprocessor interrupt
   bool running() { return run; }
-  reg_t set_pcr(int which, reg_t val);
-  uint32_t set_fsr(uint32_t val); // set the floating-point status register
+  void set_pcr(int which, reg_t val);
+  void set_fromhost(reg_t val);
   void set_interrupt(int which, bool on);
   reg_t get_pcr(int which);
-  uint32_t get_fsr() { return state.fsr; }
   mmu_t* get_mmu() { return mmu; }
   state_t* get_state() { return &state; }
   extension_t* get_extension() { return ext; }
   void yield_load_reservation() { state.load_reservation = (reg_t)-1; }
+  void update_histogram(size_t pc);
 
   void register_insn(insn_desc_t);
   void register_extension(extension_t*);
@@ -81,24 +92,30 @@ private:
   sim_t* sim;
   mmu_t* mmu; // main memory is always accessed via the mmu
   extension_t* ext;
-  disassembler_t disassembler;
+  disassembler_t* disassembler;
   state_t state;
   uint32_t id;
   bool run; // !reset
   bool debug;
+  bool histogram_enabled;
+  bool rv64;
+  bool serialized;
 
-  unsigned opcode_bits;
-  std::multimap<uint32_t, insn_desc_t> opcode_map;
+  std::vector<insn_desc_t> instructions;
+  std::vector<insn_desc_t*> opcode_map;
+  std::vector<insn_desc_t> opcode_store;
+  std::map<size_t,size_t> pc_histogram;
 
   void take_interrupt(); // take a trap if any interrupts are pending
-  void take_trap(reg_t pc, trap_t& t); // take an exception
+  void serialize(); // collapse into defined architectural state
+  reg_t take_trap(trap_t& t, reg_t epc); // take an exception
   void disasm(insn_t insn); // disassemble and print an instruction
 
   friend class sim_t;
   friend class mmu_t;
   friend class extension_t;
-  friend class htif_isasim_t;
 
+  void build_opcode_map();
   insn_func_t decode_insn(insn_t insn);
 };
 

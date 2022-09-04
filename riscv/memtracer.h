@@ -3,7 +3,7 @@
 #ifndef _MEMTRACER_H
 #define _MEMTRACER_H
 
-#include <stdint.h>
+#include <cstdint>
 #include <string.h>
 #include <vector>
 
@@ -20,6 +20,7 @@ class memtracer_t
 class memtracer_list_t : public memtracer_t
 {
  public:
+  bool empty() { return list.empty(); }
   bool interested_in_range(uint64_t begin, uint64_t end, bool store, bool fetch)
   {
     for (std::vector<memtracer_t*>::iterator it = list.begin(); it != list.end(); ++it)

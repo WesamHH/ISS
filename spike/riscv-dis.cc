@@ -7,15 +7,21 @@
 // instruction.
 
 #include "disasm.h"
+#include "extension.h"
 #include <iostream>
 #include <string>
 #include <cstdint>
+#include <fesvr/option_parser.h>
 using namespace std;
 
-int main()
+int main(int argc, char** argv)
 {
   string s;
   disassembler_t d;
+
+  std::function<extension_t*()> extension;
+  option_parser_t parser;
+  parser.option(0, "extension", 1, [&](const char* s){extension = find_extension(s);});
 
   while (getline(cin, s))
   {
@@ -26,10 +32,8 @@ int main()
         break;
 
       size_t numstart = start + strlen("DASM(");
-      uint32_t n = strtoul(&s[numstart], NULL, 16);
-
-      string dis = d.disassemble(*(insn_t*)&n);
-
+      insn_bits_t bits = strtoull(&s[numstart], NULL, 16);
+      string dis = d.disassemble(bits);
       s = s.substr(0, start) + dis + s.substr(end+1);
       start += dis.length();
     }

@@ -23,20 +23,22 @@ public:
   bool running();
   void stop();
   void set_debug(bool value);
+  void set_histogram(bool value);
   void set_procs_debug(bool value);
+  htif_isasim_t* get_htif() { return htif.get(); }
 
   // deliver an IPI to a specific processor
   void send_ipi(reg_t who);
 
   // returns the number of processors in this simulator
   size_t num_cores() { return procs.size(); }
-  processor_t* get_core(size_t i) { return procs[i]; }
+  processor_t* get_core(size_t i) { return procs.at(i); }
 
   // read one of the system control registers
   reg_t get_scr(int which);
 
 private:
-  std::auto_ptr<htif_isasim_t> htif;
+  std::unique_ptr<htif_isasim_t> htif;
   char* mem; // main memory
   size_t memsz; // memory size in bytes
   mmu_t* debug_mmu;  // debug port into main memory
@@ -47,6 +49,7 @@ private:
   size_t current_step;
   size_t current_proc;
   bool debug;
+  bool histogram_enabled; // provide a histogram of PCs
 
   // presents a prompt for introspection into the simulation
   void interactive();

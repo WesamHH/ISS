@@ -7,85 +7,78 @@
 #include <sstream>
 #include <stdlib.h>
 
-static const char* xpr[] = {
-  "zero", "ra", "s0", "s1",  "s2",  "s3",  "s4",  "s5",
-  "s6",   "s7", "s8", "s9", "s10", "s11",  "sp",  "tp",
-  "v0",   "v1", "a0", "a1",  "a2",  "a3",  "a4",  "a5",
-  "a6",   "a7", "t0", "t1",  "t2",  "t3",  "t4",  "gp"
-};
-
-static const char* fpr[] = {
-  "fs0", "fs1",  "fs2",  "fs3",  "fs4",  "fs5",  "fs6",  "fs7",
-  "fs8", "fs9", "fs10", "fs11", "fs12", "fs13", "fs14", "fs15",
-  "fv0", "fv1", "fa0",   "fa1",  "fa2",  "fa3",  "fa4",  "fa5",
-  "fa6", "fa7", "ft0",   "ft1",  "ft2",  "ft3",  "ft4",  "ft5"
-};
 
 struct : public arg_t {
   std::string to_string(insn_t insn) const {
-    return std::to_string((int)insn.i_imm()) + '(' + xpr[insn.rs1()] + ')';
+    return std::to_string((int)insn.i_imm()) + '(' + xpr_name[insn.rs1()] + ')';
   }
 } load_address;
 
 struct : public arg_t {
   std::string to_string(insn_t insn) const {
-    return std::to_string((int)insn.s_imm()) + '(' + xpr[insn.rs1()] + ')';
+    return std::to_string((int)insn.s_imm()) + '(' + xpr_name[insn.rs1()] + ')';
   }
 } store_address;
 
 struct : public arg_t {
   std::string to_string(insn_t insn) const {
-    return std::string("0(") + xpr[insn.rs1()] + ')';
+    return std::string("0(") + xpr_name[insn.rs1()] + ')';
   }
 } amo_address;
 
 struct : public arg_t {
   std::string to_string(insn_t insn) const {
-    return xpr[insn.rd()];
+    return xpr_name[insn.rd()];
   }
 } xrd;
 
 struct : public arg_t {
   std::string to_string(insn_t insn) const {
-    return xpr[insn.rs1()];
+    return xpr_name[insn.rs1()];
   }
 } xrs1;
 
 struct : public arg_t {
   std::string to_string(insn_t insn) const {
-    return xpr[insn.rs2()];
+    return xpr_name[insn.rs2()];
   }
 } xrs2;
 
 struct : public arg_t {
   std::string to_string(insn_t insn) const {
-    return fpr[insn.rd()];
+    return fpr_name[insn.rd()];
   }
 } frd;
 
 struct : public arg_t {
   std::string to_string(insn_t insn) const {
-    return fpr[insn.rs1()];
+    return fpr_name[insn.rs1()];
   }
 } frs1;
 
 struct : public arg_t {
   std::string to_string(insn_t insn) const {
-    return fpr[insn.rs2()];
+    return fpr_name[insn.rs2()];
   }
 } frs2;
 
 struct : public arg_t {
   std::string to_string(insn_t insn) const {
-    return fpr[insn.rs3()];
+    return fpr_name[insn.rs3()];
   }
 } frs3;
 
 struct : public arg_t {
   std::string to_string(insn_t insn) const {
-    return std::string("pcr") + xpr[insn.rs1()];
+    switch (insn.csr())
+    {
+      #define DECLARE_CSR(name, num) case num: return #name;
+      #include "encoding.h"
+      #undef DECLARE_CSR
+      default: return "unknown";
+    }
   }
-} pcr;
+} csr;
 
 struct : public arg_t {
   std::string to_string(insn_t insn) const {
@@ -103,6 +96,12 @@ struct : public arg_t {
 
 struct : public arg_t {
   std::string to_string(insn_t insn) const {
+    return std::to_string(insn.rs1());
+  }
+} zimm5;
+
+struct : public arg_t {
+  std::string to_string(insn_t insn) const {
     std::stringstream s;
     int32_t target = insn.sb_imm();
     char sign = target >= 0 ? '+' : '-';
@@ -114,7 +113,7 @@ struct : public arg_t {
 struct : public arg_t {
   std::string to_string(insn_t insn) const {
     std::stringstream s;
-    int32_t target = insn.sb_imm();
+    int32_t target = insn.uj_imm();
     char sign = target >= 0 ? '+' : '-';
     s << "pc " << sign << std::hex << " 0x" << abs(target);
     return s.str();
@@ -133,13 +132,13 @@ disassembler_t::disassembler_t()
   const uint32_t match_rd_ra = 1UL << 7;
   const uint32_t mask_rs1 = 0x1fUL << 15;
   const uint32_t match_rs1_ra = 1UL << 15;
-  const uint32_t mask_rs2 = 0x1fUL << 15;
+  const uint32_t mask_rs2 = 0x1fUL << 20;
   const uint32_t mask_imm = 0xfffUL << 20;
 
   #define DECLARE_INSN(code, match, mask) \
    const uint32_t match_##code = match; \
    const uint32_t mask_##code = mask;
-  #include "opcodes.h"
+  #include "encoding.h"
   #undef DECLARE_INSN
 
   // explicit per-instruction disassembly
@@ -147,7 +146,6 @@ disassembler_t::disassembler_t()
     add_insn(new disasm_insn_t(name, match_##code, mask_##code | (extra), __VA_ARGS__));
   #define DEFINE_NOARG(code) \
     add_insn(new disasm_insn_t(#code, match_##code, mask_##code, {}));
-  #define DEFINE_DTYPE(code) DISASM_INSN(#code, code, 0, {&xrd})
   #define DEFINE_RTYPE(code) DISASM_INSN(#code, code, 0, {&xrd, &xrs1, &xrs2})
   #define DEFINE_ITYPE(code) DISASM_INSN(#code, code, 0, {&xrd, &xrs1, &imm})
   #define DEFINE_I0TYPE(name, code) DISASM_INSN(name, code, mask_rs1, {&xrd, &imm})
@@ -185,6 +183,7 @@ disassembler_t::disassembler_t()
   DEFINE_XAMO(amoswap_w)
   DEFINE_XAMO(amoand_w)
   DEFINE_XAMO(amoor_w)
+  DEFINE_XAMO(amoxor_w)
   DEFINE_XAMO(amomin_w)
   DEFINE_XAMO(amomax_w)
   DEFINE_XAMO(amominu_w)
@@ -193,6 +192,7 @@ disassembler_t::disassembler_t()
   DEFINE_XAMO(amoswap_d)
   DEFINE_XAMO(amoand_d)
   DEFINE_XAMO(amoor_d)
+  DEFINE_XAMO(amoxor_d)
   DEFINE_XAMO(amomin_d)
   DEFINE_XAMO(amomax_d)
   DEFINE_XAMO(amominu_d)
@@ -234,6 +234,7 @@ disassembler_t::disassembler_t()
   DEFINE_ITYPE(jalr);
 
   add_insn(new disasm_insn_t("nop", match_addi, mask_addi | mask_rd | mask_rs1 | mask_imm, {}));
+  add_insn(new disasm_insn_t(" - ", match_xor, mask_xor | mask_rd | mask_rs1 | mask_rs2, {})); // for machine-generated bubbles
   DEFINE_I0TYPE("li", addi);
   DEFINE_I1TYPE("move", addi);
   DEFINE_ITYPE(addi);
@@ -279,21 +280,20 @@ disassembler_t::disassembler_t()
   DEFINE_RTYPE(remw);
   DEFINE_RTYPE(remuw);
 
-  DEFINE_NOARG(syscall);
-  DEFINE_NOARG(break);
+  DEFINE_NOARG(scall);
+  DEFINE_NOARG(sbreak);
   DEFINE_NOARG(fence);
   DEFINE_NOARG(fence_i);
 
-  DEFINE_DTYPE(rdcycle);
-  DEFINE_DTYPE(rdtime);
-  DEFINE_DTYPE(rdinstret);
-
-  add_insn(new disasm_insn_t("mtpcr", match_mtpcr, mask_mtpcr | mask_rd, {&xrs2, &pcr}));
-  add_insn(new disasm_insn_t("mtpcr", match_mtpcr, mask_mtpcr, {&xrd, &xrs2, &pcr}));
-  add_insn(new disasm_insn_t("mfpcr", match_mfpcr, mask_mfpcr, {&xrd, &pcr}));
-  add_insn(new disasm_insn_t("setpcr", match_setpcr, mask_setpcr, {&xrd, &pcr, &imm}));
-  add_insn(new disasm_insn_t("clearpcr", match_clearpcr, mask_clearpcr, {&xrd, &pcr, &imm}));
-  DEFINE_NOARG(eret)
+  add_insn(new disasm_insn_t("csrr", match_csrrs, mask_csrrs | mask_rs1, {&xrd, &csr}));
+  add_insn(new disasm_insn_t("csrw", match_csrrw, mask_csrrw | mask_rd, {&csr, &xrs1}));
+  add_insn(new disasm_insn_t("csrrw", match_csrrw, mask_csrrw, {&xrd, &csr, &xrs1}));
+  add_insn(new disasm_insn_t("csrrs", match_csrrs, mask_csrrs, {&xrd, &csr, &xrs1}));
+  add_insn(new disasm_insn_t("csrrc", match_csrrc, mask_csrrc, {&xrd, &csr, &xrs1}));
+  add_insn(new disasm_insn_t("csrrwi", match_csrrwi, mask_csrrwi, {&xrd, &csr, &zimm5}));
+  add_insn(new disasm_insn_t("csrrsi", match_csrrsi, mask_csrrsi, {&xrd, &csr, &zimm5}));
+  add_insn(new disasm_insn_t("csrrci", match_csrrci, mask_csrrci, {&xrd, &csr, &zimm5}));
+  DEFINE_NOARG(sret)
 
   DEFINE_FRTYPE(fadd_s);
   DEFINE_FRTYPE(fsub_s);
@@ -320,6 +320,7 @@ disassembler_t::disassembler_t()
   DEFINE_FXTYPE(fcvt_lu_s);
   DEFINE_FXTYPE(fcvt_w_s);
   DEFINE_FXTYPE(fcvt_wu_s);
+  DEFINE_FXTYPE(fclass_s);
   DEFINE_FXTYPE(fmv_x_s);
   DEFINE_FXTYPE(feq_s);
   DEFINE_FXTYPE(flt_s);
@@ -350,19 +351,16 @@ disassembler_t::disassembler_t()
   DEFINE_FXTYPE(fcvt_lu_d);
   DEFINE_FXTYPE(fcvt_w_d);
   DEFINE_FXTYPE(fcvt_wu_d);
+  DEFINE_FXTYPE(fclass_d);
   DEFINE_FXTYPE(fmv_x_d);
   DEFINE_FXTYPE(feq_d);
   DEFINE_FXTYPE(flt_d);
   DEFINE_FXTYPE(fle_d);
 
-  add_insn(new disasm_insn_t("fssr", match_fssr, mask_fssr | mask_rd, {&xrs1}));
-  add_insn(new disasm_insn_t("fssr", match_fssr, mask_fssr, {&xrd, &xrs1}));
-  DEFINE_DTYPE(frsr);
-
   // provide a default disassembly for all instructions as a fallback
   #define DECLARE_INSN(code, match, mask) \
    add_insn(new disasm_insn_t(#code " (args unknown)", match, mask, {}));
-  #include "opcodes.h"
+  #include "encoding.h"
   #undef DECLARE_INSN
 }
 

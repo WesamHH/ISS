@@ -1,5 +1,7 @@
 // See LICENSE for license details.
 
+#include "decode.h"
+#include "disasm.h"
 #include "sim.h"
 #include "htif.h"
 #include <sys/mman.h>
@@ -14,6 +16,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <algorithm>
 
 static std::string readline(int fd)
 {
@@ -45,7 +48,7 @@ static std::string readline(int fd)
 
 void sim_t::interactive()
 {
-  while (true)
+  while (!htif->done())
   {
     std::cerr << ": " << std::flush;
     std::string s = readline(2);
@@ -103,7 +106,7 @@ void sim_t::interactive_run(const std::string& cmd, const std::vector<std::strin
   size_t steps = args.size() ? atoll(args[0].c_str()) : -1;
   ctrlc_pressed = false;
   set_procs_debug(noisy);
-  for (size_t i = 0; i < steps && !ctrlc_pressed; i++)
+  for (size_t i = 0; i < steps && !ctrlc_pressed && !htif->done(); i++)
     step(1);
 }
 
@@ -130,7 +133,9 @@ reg_t sim_t::get_reg(const std::vector<std::string>& args)
     throw trap_illegal_instruction();
 
   int p = atoi(args[0].c_str());
-  int r = atoi(args[1].c_str());
+  int r = std::find(xpr_name, xpr_name + NXPR, args[1]) - xpr_name;
+  if (r == NXPR)
+    r = atoi(args[1].c_str());
   if(p >= (int)num_cores() || r >= NXPR)
     throw trap_illegal_instruction();
 
@@ -143,7 +148,9 @@ reg_t sim_t::get_freg(const std::vector<std::string>& args)
     throw trap_illegal_instruction();
 
   int p = atoi(args[0].c_str());
-  int r = atoi(args[1].c_str());
+  int r = std::find(fpr_name, fpr_name + NFPR, args[1]) - fpr_name;
+  if (r == NFPR)
+    r = atoi(args[1].c_str());
   if(p >= (int)num_cores() || r >= NFPR)
     throw trap_illegal_instruction();
 

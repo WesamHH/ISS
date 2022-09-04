@@ -8,6 +8,9 @@
 #include <sstream>
 #include <vector>
 
+extern const char* xpr_name[NXPR];
+extern const char* fpr_name[NFPR];
+
 class arg_t
 {
  public:

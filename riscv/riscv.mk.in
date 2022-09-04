@@ -1,16 +1,10 @@
-get_insn_list = $(shell cat $(1) | sed 's/DECLARE_INSN(\(.*\),.*,.*)/\1/')
-get_opcode = $(shell grep \\\<$(2)\\\> $(1) | sed 's/DECLARE_INSN(.*,\(.*\),.*)/\1/')
+get_insn_list = $(shell grep ^DECLARE_INSN $(1) | sed 's/DECLARE_INSN(\(.*\),.*,.*)/\1/')
+get_opcode = $(shell grep ^DECLARE_INSN.*\\\<$(2)\\\> $(1) | sed 's/DECLARE_INSN(.*,\(.*\),.*)/\1/')
 
 riscv_subproject_deps = \
-	softfloat_riscv \
 	softfloat \
-	hwacha \
 
 riscv_install_prog_srcs = \
-	spike.cc \
-	riscv-dis.cc \
-	xspike.cc \
-	termios-xspike.cc \
 
 riscv_hdrs = \
 	htif.h \
@@ -20,12 +14,16 @@ riscv_hdrs = \
 	processor.h \
 	sim.h \
 	trap.h \
-	opcodes.h \
+	encoding.h \
 	cachesim.h \
 	memtracer.h \
 	extension.h \
 	rocc.h \
-	dummy-rocc.h \
+	insn_template.h \
+	mulhi.h \
+
+riscv_precompiled_hdrs = \
+	insn_template.h \
 
 riscv_srcs = \
 	htif.cc \
@@ -36,19 +34,25 @@ riscv_srcs = \
 	cachesim.cc \
 	mmu.cc \
 	disasm.cc \
-  extension.cc \
-  rocc.cc \
+	extension.cc \
+	rocc.cc \
+	regnames.cc \
 	$(riscv_gen_srcs) \
 
 riscv_test_srcs =
 
 riscv_gen_hdrs = \
+  icache.h \
 
 riscv_gen_srcs = \
-	$(addsuffix .cc, $(call get_insn_list,$(src_dir)/riscv/opcodes.h))
+	$(addsuffix .cc, $(call get_insn_list,$(src_dir)/riscv/encoding.h))
+
+icache.h:
+	$(src_dir)/riscv/gen_icache 1024 > $@.tmp
+	mv $@.tmp $@
 
 $(riscv_gen_srcs): %.cc: insns/%.h insn_template.cc
-	sed 's/NAME/$(subst .cc,,$@)/' $(src_dir)/riscv/insn_template.cc | sed 's/OPCODE/$(call get_opcode,$(src_dir)/riscv/opcodes.h,$(subst .cc,,$@))/' > $@
+	sed 's/NAME/$(subst .cc,,$@)/' $(src_dir)/riscv/insn_template.cc | sed 's/OPCODE/$(call get_opcode,$(src_dir)/riscv/encoding.h,$(subst .cc,,$@))/' > $@
 
 riscv_junk = \
 	$(riscv_gen_srcs) \

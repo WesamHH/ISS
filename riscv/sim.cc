@@ -34,14 +34,16 @@ sim_t::sim_t(size_t nprocs, size_t mem_mb, const std::vector<std::string>& args)
   while ((mem = (char*)calloc(1, memsz)) == NULL)
     memsz = memsz*10/11/quantum*quantum;
 
-  if (memsz != memsz)
+  if (memsz != memsz0)
     fprintf(stderr, "warning: only got %lu bytes of target mem (wanted %lu)\n",
             (unsigned long)memsz, (unsigned long)memsz0);
 
   debug_mmu = new mmu_t(mem, memsz);
 
-  for (size_t i = 0; i < procs.size(); i++)
+  for (size_t i = 0; i < procs.size(); i++) {
     procs[i] = new processor_t(this, new mmu_t(mem, memsz), i);
+  }
+
 }
 
 sim_t::~sim_t()
@@ -124,8 +126,17 @@ void sim_t::set_debug(bool value)
   debug = value;
 }
 
+void sim_t::set_histogram(bool value)
+{
+  histogram_enabled = value;
+  for (size_t i = 0; i < procs.size(); i++) {
+    procs[i]->set_histogram(histogram_enabled);
+  }
+}
+
 void sim_t::set_procs_debug(bool value)
 {
   for (size_t i=0; i< procs.size(); i++)
     procs[i]->set_debug(value);
 }
+

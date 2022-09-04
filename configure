@@ -650,6 +650,7 @@ with_fesvr
 enable_fpu
 enable_64bit
 enable_commitlog
+enable_histogram
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1286,6 +1287,7 @@ Optional Features:
   --disable-fpu           Disable floating-point
   --disable-64bit         Disable 64-bit mode
   --enable-commitlog      Enable commit log generation
+  --enable-histogram      Enable PC histogram generation
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -4004,9 +4006,9 @@ fi
 # Default compiler flags
 #-------------------------------------------------------------------------
 
-CFLAGS="-Wall -O2 -Wno-unused"
+CFLAGS="-Wall -Wno-unused -O2"
 
-CXXFLAGS="-Wall -O2 -std=c++0x"
+CXXFLAGS="-Wall -Wno-unused -O2 -std=c++11"
 
 
 #-------------------------------------------------------------------------
@@ -4075,7 +4077,7 @@ $as_echo "#define RISCV_ENABLED /**/" >>confdefs.h
 if test "${with_fesvr+set}" = set; then :
   withval=$with_fesvr;
     LDFLAGS="-L$withval/lib $LDFLAGS"
-    CFLAGS="-I$withval/include $CFLAGS"
+    CPPFLAGS="-I$withval/include $CPPFLAGS"
 
 
 fi
@@ -4087,7 +4089,7 @@ if ${ac_cv_lib_fesvr_libfesvr_is_present+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
-LIBS="-lfesvr  $LIBS"
+LIBS="-lfesvr -pthread $LIBS"
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -4216,6 +4218,19 @@ $as_echo "#define RISCV_ENABLE_COMMITLOG /**/" >>confdefs.h
 
 fi
 
+# Check whether --enable-histogram was given.
+if test "${enable_histogram+set}" = set; then :
+  enableval=$enable_histogram;
+fi
+
+if test "x$enable_histogram" = "xyes"; then :
+
+
+$as_echo "#define RISCV_ENABLE_HISTOGRAM /**/" >>confdefs.h
+
+
+fi
+
 
 
 
@@ -4259,6 +4274,51 @@ $as_echo "$as_me: configuring default subproject : hwacha" >&6;}
       subprojects_enabled="$subprojects_enabled hwacha"
 
 $as_echo "#define HWACHA_ENABLED /**/" >>confdefs.h
+
+
+
+
+
+
+    # Determine if this is a required or an optional subproject
+
+
+
+    # Determine if there is a group with the same name
+
+
+
+    # Create variations of the subproject name suitable for use as a CPP
+    # enabled define, a shell enabled variable, and a shell function
+
+
+
+
+
+
+
+
+
+
+
+    # Add subproject to our running list
+
+    subprojects="$subprojects dummy_rocc"
+
+    # Process the subproject appropriately. If enabled add it to the
+    # $enabled_subprojects running shell variable, set a
+    # SUBPROJECT_ENABLED C define, and include the appropriate
+    # 'subproject.ac'.
+
+
+      { $as_echo "$as_me:${as_lineno-$LINENO}: configuring default subproject : dummy_rocc" >&5
+$as_echo "$as_me: configuring default subproject : dummy_rocc" >&6;}
+      ac_config_files="$ac_config_files dummy_rocc.mk:dummy_rocc/dummy_rocc.mk.in"
+
+      enable_dummy_rocc_sproj="yes"
+      subprojects_enabled="$subprojects_enabled dummy_rocc"
+
+$as_echo "#define DUMMY_ROCC_ENABLED /**/" >>confdefs.h
 
 
 
@@ -4333,7 +4393,7 @@ $as_echo "#define SOFTFLOAT_ENABLED /**/" >>confdefs.h
 
     # Add subproject to our running list
 
-    subprojects="$subprojects softfloat_riscv"
+    subprojects="$subprojects spike"
 
     # Process the subproject appropriately. If enabled add it to the
     # $enabled_subprojects running shell variable, set a
@@ -4341,14 +4401,61 @@ $as_echo "#define SOFTFLOAT_ENABLED /**/" >>confdefs.h
     # 'subproject.ac'.
 
 
-      { $as_echo "$as_me:${as_lineno-$LINENO}: configuring default subproject : softfloat_riscv" >&5
-$as_echo "$as_me: configuring default subproject : softfloat_riscv" >&6;}
-      ac_config_files="$ac_config_files softfloat_riscv.mk:softfloat_riscv/softfloat_riscv.mk.in"
+      { $as_echo "$as_me:${as_lineno-$LINENO}: configuring default subproject : spike" >&5
+$as_echo "$as_me: configuring default subproject : spike" >&6;}
+      ac_config_files="$ac_config_files spike.mk:spike/spike.mk.in"
 
-      enable_softfloat_riscv_sproj="yes"
-      subprojects_enabled="$subprojects_enabled softfloat_riscv"
+      enable_spike_sproj="yes"
+      subprojects_enabled="$subprojects_enabled spike"
 
-$as_echo "#define SOFTFLOAT_RISCV_ENABLED /**/" >>confdefs.h
+$as_echo "#define SPIKE_ENABLED /**/" >>confdefs.h
+
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for dlopen in -ldl" >&5
+$as_echo_n "checking for dlopen in -ldl... " >&6; }
+if ${ac_cv_lib_dl_dlopen+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-ldl  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char dlopen ();
+int
+main ()
+{
+return dlopen ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_dl_dlopen=yes
+else
+  ac_cv_lib_dl_dlopen=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_dl_dlopen" >&5
+$as_echo "$ac_cv_lib_dl_dlopen" >&6; }
+if test "x$ac_cv_lib_dl_dlopen" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBDL 1
+_ACEOF
+
+  LIBS="-ldl $LIBS"
+
+else
+  as_fn_error $? "libdl is required" "$LINENO" 5
+fi
 
 
 
@@ -5085,8 +5192,9 @@ do
   case $ac_config_target in
     "riscv.mk") CONFIG_FILES="$CONFIG_FILES riscv.mk:riscv/riscv.mk.in" ;;
     "hwacha.mk") CONFIG_FILES="$CONFIG_FILES hwacha.mk:hwacha/hwacha.mk.in" ;;
+    "dummy_rocc.mk") CONFIG_FILES="$CONFIG_FILES dummy_rocc.mk:dummy_rocc/dummy_rocc.mk.in" ;;
     "softfloat.mk") CONFIG_FILES="$CONFIG_FILES softfloat.mk:softfloat/softfloat.mk.in" ;;
-    "softfloat_riscv.mk") CONFIG_FILES="$CONFIG_FILES softfloat_riscv.mk:softfloat_riscv/softfloat_riscv.mk.in" ;;
+    "spike.mk") CONFIG_FILES="$CONFIG_FILES spike.mk:spike/spike.mk.in" ;;
     "config.h") CONFIG_HEADERS="$CONFIG_HEADERS config.h" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
 

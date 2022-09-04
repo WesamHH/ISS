@@ -4,6 +4,8 @@
 #include "trap.h"
 #include <stdexcept>
 
+REGISTER_EXTENSION(hwacha, []() { return new hwacha_t; })
+
 void ct_state_t::reset()
 {
   nxpr = 32;
@@ -74,7 +76,7 @@ static reg_t custom(processor_t* p, insn_t insn, reg_t pc)
   }
 
   if (!matched)
-    h->take_exception(HWACHA_CAUSE_ILLEGAL_INSTRUCTION, insn.bits());
+    h->take_exception(HWACHA_CAUSE_ILLEGAL_INSTRUCTION, uint32_t(insn.bits()));
 
   return npc;
 }

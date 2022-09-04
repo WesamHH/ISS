@@ -36,6 +36,7 @@ m4_define( proj_version, [?])
 # Setup
 #-------------------------------------------------------------------------
 
+AC_LANG_CPLUSPLUS
 AC_INIT(proj_name,proj_version,proj_maintainer,proj_abbreviation)
 AC_CONFIG_SRCDIR([riscv/common.h])
 AC_CONFIG_AUX_DIR([scripts])
@@ -71,8 +72,8 @@ AC_HEADER_STDC
 # Default compiler flags
 #-------------------------------------------------------------------------
 
-AC_SUBST([CFLAGS],  ["-Wall -O2 -Wno-unused"])
-AC_SUBST([CXXFLAGS],["-Wall -O2 -std=c++0x"])
+AC_SUBST([CFLAGS],  ["-Wall -Wno-unused -O2"])
+AC_SUBST([CXXFLAGS],["-Wall -Wno-unused -O2 -std=c++11"])
 
 #-------------------------------------------------------------------------
 # MCPPBS subproject list
@@ -81,7 +82,7 @@ AC_SUBST([CXXFLAGS],["-Wall -O2 -std=c++0x"])
 # The '*' suffix indicates an optional subproject. The '**' suffix
 # indicates an optional subproject which is also the name of a group.
 
-MCPPBS_SUBPROJECTS([ riscv, hwacha, softfloat, softfloat_riscv ])
+MCPPBS_SUBPROJECTS([ riscv, hwacha, dummy_rocc, softfloat, spike ])
 
 #-------------------------------------------------------------------------
 # MCPPBS subproject groups
